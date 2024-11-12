@@ -2,16 +2,37 @@ security:
     # https://symfony.com/doc/current/security.html#registering-the-user-hashing-passwords
     password_hashers:
         Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
+        #Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'plaintext'
     # https://symfony.com/doc/current/security.html#loading-the-user-the-user-provider
     providers:
-        users_in_memory: { memory: null }
+        #users_in_memory: { memory: null }
+        # users_in_memory:
+        #     memory:
+        #         users:
+        #             admin:
+        #                 password: '$2y$13$MLHVnWxWXqpC1SRfMatCbOwMkB9Q2s7Ozkk1RDyuIY4b1uZCyDdv2'
+        #                 roles:
+        #                     - 'ROLE_ADMIN'
+        #                     - 'ROLE_USER'
+        app_user_provider:
+            entity:
+                class: App\Entity\User
+                property: username
     firewalls:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
         main:
             lazy: true
-            provider: users_in_memory
+            #provider: users_in_memory
+            provider: app_user_provider
+            # http_basic:
+            #     realm: 'My Secured Area'
+            form_login:
+                login_path: app_login
+                check_path: app_login
+            logout:
+                path: app_logout
 
             # activate different ways to authenticate
             # https://symfony.com/doc/current/security.html#the-firewall
@@ -24,6 +45,22 @@ security:
     access_control:
         # - { path: ^/admin, roles: ROLE_ADMIN }
         # - { path: ^/profile, roles: ROLE_USER }
+        - { path: ^/, roles: PUBLIC_ACCESS }
+
+    role_hierarchy:
+        ROLE_ADMIN:
+            - ROLE_USER
+            - ROLE_LOCATION_NEW
+            - ROLE_LOCATION_EDIT
+            - ROLE_LOCATION_DELETE
+            - ROLE_MEASUREMENT_NEW
+            - ROLE_MEASUREMENT_EDIT
+            - ROLE_MEASUREMENT_DELETE
+        ROLE_USER:
+            - ROLE_LOCATION_INDEX
+            - ROLE_LOCATION_SHOW
+            - ROLE_MEASUREMENT_INDEX
+            - ROLE_MEASUREMENT_SHOW
 
 when@test:
     security:
